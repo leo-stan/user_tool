@@ -77,7 +77,7 @@ CFG_FIELD_EXAMPLES = {
 # fixed list of values to select
 CFG_VALUE_OPTIONS = {
     "orn": ["North-East-Down (+X+Y+Z)", "East-North-Up (+Y+X-Z)", "Select Other"],
-    "odr": [20, 50, 100, 200],
+    "odr": [20, 50, 100, 200, 500, 1000, 2000],
     "gps1": ["on", "off"],
     #"gps2": ["on", "off"],
     "odo": ["mps", "mph", "kph", "fps"],

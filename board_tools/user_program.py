@@ -377,6 +377,9 @@ class UserProgram:
         elif not self.board:
             show_and_pause("must connect before logging")
             return
+        elif self.connection_info["type"] != "UDP":
+            show_and_pause("\nPlease connect by UDP to log\nHigh rate binary version only logs over UDP")
+            return
         else:
             suggested = collector.default_log_name()
             options = ["default: " + suggested, "other"]
@@ -493,6 +496,9 @@ class UserProgram:
     def monitor(self):
         if not self.board:
             show_and_pause("connect before monitoring")
+            return
+        elif self.connection_info["type"] != "UDP":
+            show_and_pause("\nPlease connect by UDP to monitor\nHigh rate binary version only outputs over UDP")
             return
 
         #main window freezes until monitor closes - explain that.
