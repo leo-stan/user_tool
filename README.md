@@ -1,5 +1,7 @@
 This repo contains tools for logging and configuring with the Anello A-1.
 
+This branch of user tools is for A1 configured with high rate binary output. This is the less common configuration. If your unit outputs ASCII messages like #APIMU, #APINS, #APGPS, then use the main branch instead. This version will allow setting the higher data rates which are allowed in binary mode.
+
 - contents:
     - board_tools/user_program.py  - interactive configuration and logging tool.
         - usage: python user_program.py
