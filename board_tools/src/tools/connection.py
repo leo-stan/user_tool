@@ -214,7 +214,7 @@ class FileReaderConnection(Connection):
 	def read_until(self, expected='\n', size=None):
 		out = b''
 		if size is None:
-			while(True):
+			while True:
 				data = self.reader.read(1)
 				out += data
 				if data == b'':  # end of file - return b'' from then on, as if connection is timing out

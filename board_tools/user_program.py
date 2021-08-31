@@ -13,7 +13,7 @@ import select
 from user_program_config import *
 from ioloop import *
 import PySimpleGUI as sg
-from convertLog import export_logs# TODO - put under src directory?
+from convert_log_bin import export_logs
 
 parent_dir = str(pathlib.Path(__file__).parent)
 sys.path.append(parent_dir+'/src')
