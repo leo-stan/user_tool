@@ -1,6 +1,7 @@
 from threading import Thread
 import collections
 import matplotlib.pyplot as plt
+plt.rcParams['axes.grid'] = True
 import matplotlib.animation as animation
 import numpy as np
 import copy
@@ -21,9 +22,17 @@ except ModuleNotFoundError:  # importing from outside the package
     from tools.config.board_config import *
 
 
-def default_log_name():
-    time_str = time.ctime(time.time()).replace(" ", "_").replace(":", "_")
-    return "output_"+time_str+LOG_FILETYPE
+def default_log_name(serialNum = None):
+    #time_str = time.ctime(time.time()).replace(" ", "_").replace(":", "_")
+    local = time.localtime()
+    date_nums = [local.tm_year, local.tm_mon, local.tm_mday]
+    time_nums = [local.tm_hour, local.tm_min, local.tm_sec]
+    date_str = "date_" + "_".join([str(num) for num in date_nums])
+    time_str = "time_" + "_".join([str(num) for num in time_nums])
+    if serialNum is None:
+        return "output_" + date_str + "_" + time_str + LOG_FILETYPE
+    else:
+        return "output_" + date_str + "_" + time_str + "_SN_"+str(serialNum) + LOG_FILETYPE
 
 # Gets messages from a Board, stores and plots them
 class Collector:
@@ -220,21 +229,30 @@ class Collector:
 
     # add extra fields like delta t
     def add_delta_t_imu(self, message):
-        if self.last_message_time:
-            message.delta_t = message.imu_time_ms - self.last_message_time
-        self.last_message_time = message.imu_time_ms
-        # for first message, can't add delta_t - need to indicate that with something?
+        try:
+            if self.last_message_time:
+                message.delta_t = message.imu_time_ms - self.last_message_time
+            self.last_message_time = message.imu_time_ms
+            # for first message, can't add delta_t - need to indicate that with something?
+        except Exception as e:
+            print("could not compute time for message: "+str(message))
 
     def add_delta_t_cal(self, message):
-        if self.last_message_time:
-            message.delta_t = message.time - self.last_message_time
-        self.last_message_time = message.time
+        try:
+            if self.last_message_time:
+                message.delta_t = message.time - self.last_message_time
+            self.last_message_time = message.time
+        except Exception as e:
+            print("could not compute time for message: "+str(message))
 
     # for gps messages only - they have imu_time_ms and gps_time_ms instead of time field
     def add_delta_t_gps(self, message):
-        if self.last_gps_message_time:
-            message.delta_t = message.imu_time_ms - self.last_gps_message_time
-        self.last_gps_message_time = message.imu_time_ms
+        try:
+            if self.last_gps_message_time:
+                message.delta_t = message.imu_time_ms - self.last_gps_message_time
+            self.last_gps_message_time = message.imu_time_ms
+        except Exception as e:
+            print("could not compute time for message: "+str(message))
 
     # do a transformation on one message
     # message - the message to be transformed
@@ -263,7 +281,17 @@ class Collector:
     # get vector of some variable for all messages
     # TODO - cache vectors when calling this, or update vectors on receiving message?
     def get_vector(self, var_name):
-        return np.array([getattr(m, var_name) for m in self.messages if hasattr(m, var_name)])
+        #return np.array([getattr(m, var_name) for m in self.messages if hasattr(m, var_name)])
+
+        #longer version to show when anything is missing
+        #print("get vector: "+str(var_name))
+        values = []
+        for m in self.messages:
+            if hasattr(m, var_name):
+                values.append(getattr(m, var_name))
+            else:
+                print("missing attribute "+str(var_name)+ " in message: "+str(m))
+        return np.array(values)
 
     def get_vector_gps(self, var_name):
         return np.array([getattr(m, var_name) for m in self.gps_messages if hasattr(m, var_name)])
@@ -324,21 +352,27 @@ class Collector:
             #special handling for delta_t which has no value at first message
             if var == "delta_t":
                 dependent_data = np.concatenate((np.array([None]), dependent_data))
-            a.flat[i].plot(independent_data, dependent_data)
+            a.flat[i].plot(independent_data, dependent_data, '.')
             a.flat[i].set_title(var, loc='center')
             #a.flat[i].set_ylabel(var, rotation=0, fontsize=7, labelpad=20)
+            #plt.grid()
         plt.xlabel(independentVar)
+        #plt.grid()
         plt.show()
 
     def plot_all_accelerations(self):
-        self.plot_multi_separately("imu_time_ms", ["accel_x_g", "accel_y_g", "accel_z_g"])
+        self.plot_multi_separately("imu_time_ms", ["accel_x_g", "accel_y_g", "accel_z_g"], columns=1)
 
     def plot_all_rates(self):
-        self.plot_multi_separately("imu_time_ms", ["angrate_x_dps", "angrate_y_dps", "angrate_z_dps"])
+        self.plot_multi_separately("imu_time_ms", ["angrate_x_dps", "angrate_y_dps", "angrate_z_dps"], columns=1)
 
     def plot_everything(self, ncols=2):
-        names = ["accel_x_g", "angrate_x_dps", "accel_y_g", "angrate_y_dps", "accel_z_g", "angrate_z_dps"]#, "temperature_c"]
+        names = ["accel_x_g", "angrate_x_dps", "accel_y_g", "angrate_y_dps", "accel_z_g", "angrate_z_dps", "fog_angrate_dps", "temperature_c"]
         self.plot_multi_separately("imu_time_ms", names, columns=ncols)
+
+    def plot_all_vs_temp(self, ncols=2):
+        names = ["accel_x_g", "angrate_x_dps", "accel_y_g", "angrate_y_dps", "accel_z_g", "angrate_z_dps", "fog_angrate_dps"]
+        self.plot_multi_separately("temperature_c", names, columns=ncols)
 
     def plot_all_gps(self, ncols=2):
         names = ["gps_time_ms", "lat", "lon", "alt_ellipsoid_m", "alt_msl_m", "speed_m_per_s", "heading_degrees",
@@ -397,26 +431,28 @@ class SessionStatistics:
 # plots the data recorded by a Collector in real time.
 class RealTimePlot:
 
-    def __init__(self, collector, plotVars, maxlength=100, ymin=-5000, ymax=5000, gps=False):
+    def __init__(self, collector, plotVars, maxlength=100, title="Real Time Plot", ymin=-5000, ymax=5000, gps=False, interval_ms=50):
         self.collector = collector
         self.plotMaxLength = maxlength
         
-        self.pltInterval = 50    # Period at which the plot animation updates [ms]
+        self.pltInterval = interval_ms    # Period at which the plot animation updates [ms]
         self.plotTimer = 0  # time range for the plot
         self.previousTimer = 0
         self.plotVars = plotVars
         self.gps = gps
         
         xmin = 0
+        #xmax should be time in seconds for data to cross the window: (max points) * (time per point)
         xmax = self.plotMaxLength
+        #xmax = self.plotMaxLength * (interval_ms / 1000) #self.plotMaxLength
         self.ymin = ymin
         self.ymax = ymax
         self.fig = plt.figure()
         ax = plt.axes(xlim=(xmin, xmax), ylim=(float(ymin - (ymax - ymin) / 10), float(ymax + (ymax - ymin) / 10)))
-        ax.set_title('Real Time Plot')
-        ax.set_xlabel("Time(seconds)")
+        ax.set_title(title)
+        ax.set_xlabel("data samples (1 per "+str(self.pltInterval) + " ms)")
         lineLabel = plotVars
-        big_styles = ['r-', 'g-', 'b-','ro', 'bo', 'go', 'r+', 'b+', 'g+']
+        big_styles = ['r-', 'g-', 'b-', 'ro', 'bo', 'go', 'r+', 'b+', 'g+']
         style = big_styles[0:len(self.plotVars)]
         timeText = ax.text(0.50, 0.95, '', transform=ax.transAxes)
         lines = []

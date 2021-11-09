@@ -6,7 +6,6 @@ READABLE_CHECKSUM_SEPARATOR = b'*'
 READABLE_PAYLOAD_SEPARATOR = b','
 OUR_TALKER = b'AP'
 
-#for CFG and FLA type
 WRITE_RAM = b'w'
 READ_RAM = b'r'
 WRITE_FLASH = b'W'
@@ -28,6 +27,21 @@ FORMAT_CAL = [
 
 #APIMU,7757199.318,-0.0004,0.0131,0.5096,1.8946,-0.2313,-0.4396,0*7E
 FORMAT_IMU = [
+    ("imu_time_ms", float),
+    ("accel_x_g", float),
+    ("accel_y_g", float),
+    ("accel_z_g", float),
+    ("angrate_x_dps", float),
+    ("angrate_y_dps", float),
+    ("angrate_z_dps", float),
+    ("fog_angrate_dps", float),
+    ("odometer_speed_mps", float),
+    ("odometer_time_ms", float),
+    ("temperature_c", float)
+]
+
+#older A1 firmware has fog volts, removed in v0.2.1
+FORMAT_IMU_WITH_FOG_VOLTS = [
     ("imu_time_ms", float),
     ("accel_x_g", float),
     ("accel_y_g", float),
@@ -88,7 +102,6 @@ FORMAT_PNG = [
     ("code", int)
 ]
 
-#APGPS elements (derived from ublox NAV-PVT message):
 #APGPS,50057648,320315000.000,37.3990838,-121.9791725,-28.0670,1.8220,0.0360,232.6868,5.8751,5.8751,1.2600,3,20*72
 
 # payload:                      ex value
@@ -138,6 +151,24 @@ FORMAT_INS = [
     ("lon_deg", float),
     ("alt_m", float),
     ("velocity_0_mps", float), #relative to the orientation setting, will be north, east, down in default +X+Y+Z
+    ("velocity_1_mps", float),
+    ("velocity_2_mps", float),
+    ("attitude_0_deg", float),
+    ("attitude_1_deg", float),
+    ("attitude_2_deg", float),
+    ("zupt_flag", int)
+]
+
+#for old A1 firmware, INS message has extra comma when position not initialized
+FORMAT_INS_EXTRA_COMMA = [
+    ("imu_time_ms", int),
+    ("gps_time_ns", int),
+    ("extra comma", int), #for the extra comma
+    ("ins_solution_status", int),
+    ("lat_deg", float),
+    ("lon_deg", float),
+    ("alt_m", float),
+    ("velocity_0_mps", float),
     ("velocity_1_mps", float),
     ("velocity_2_mps", float),
     ("attitude_0_deg", float),
