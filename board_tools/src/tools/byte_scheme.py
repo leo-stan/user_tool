@@ -3,10 +3,10 @@ import os
 import struct
 try:  # importing from inside the package
     from config.byte_scheme_config import *
-    from scheme import Scheme, Message
+    from message_scheme import Scheme, Message
 except ModuleNotFoundError:  # importing from outside the package
     from tools.config.byte_scheme_config import *
-    from tools.scheme import Scheme, Message
+    from tools.message_scheme import Scheme, Message
 
 
 # messages encoded in bytes, with preamble

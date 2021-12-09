@@ -1,6 +1,6 @@
 try:  # importing from inside the package
-    import scheme
-    from scheme import Message
+    import message_scheme
+    from message_scheme import Message
     from config import *
     from readable_scheme import ReadableScheme, int_to_ascii, ascii_to_int
     from byte_scheme import ByteScheme
@@ -8,8 +8,8 @@ try:  # importing from inside the package
     from board import IMUBoard
     from collector import Collector, SessionStatistics, RealTimePlot
 except ModuleNotFoundError:  # importing from outside of the package
-    import tools.scheme
-    from tools.scheme import Message
+    import tools.message_scheme
+    from tools.message_scheme import Message
     from tools.config import *
     from tools.readable_scheme import ReadableScheme, int_to_ascii, ascii_to_int
     from tools.byte_scheme import ByteScheme
