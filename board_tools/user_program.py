@@ -17,7 +17,7 @@ from convertLog import export_logs# TODO - put under src directory?
 
 parent_dir = str(pathlib.Path(__file__).parent)
 sys.path.append(parent_dir+'/src')
-from tools import *
+from anello_tools import *
 
 
 #interface for A1 configuration and logging

@@ -7,7 +7,7 @@ import sys
 import pathlib
 parent_dir = str(pathlib.Path(__file__).parent)
 sys.path.append(parent_dir+'/src')
-from tools import *
+from anello_tools import *
 
 #___________________CONFIG SECTION:_________________________
 # these numbers should work well with any combination of booleans
