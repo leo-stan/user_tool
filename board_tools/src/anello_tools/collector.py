@@ -148,9 +148,12 @@ class Collector:
                 self.transform_message_data(message)
                 self.messages.append(message)
             elif message.msgtype == b'IMU':
-                self.add_delta_t_imu(message)
-                self.transform_message_data(message)
-                self.messages.append(message)
+                if hasattr(message, "imu_time_ms"):
+                    self.add_delta_t_imu(message)
+                    self.transform_message_data(message)
+                    self.messages.append(message)
+                else:
+                    print("Warning: imu_time_ms missing from IMU msg, skipping this msg.")
             elif message.msgtype == b'INS':
                 # could collect these into a list too.
                 # and could get delta t of the IMU time or the GPS time. probably IMU time
@@ -251,7 +254,7 @@ class Collector:
             self.last_message_time = message.imu_time_ms
             # for first message, can't add delta_t - need to indicate that with something?
         except Exception as e:
-            print("could not compute time for message: "+str(message))
+            print(f"could not compute time for message: {message}\ndue to the following exception: {e}")
 
     def add_delta_t_cal(self, message):
         try:
@@ -259,7 +262,7 @@ class Collector:
                 message.delta_t = message.time - self.last_message_time
             self.last_message_time = message.time
         except Exception as e:
-            print("could not compute time for message: "+str(message))
+            print(f"could not compute time for message: {message}\ndue to the following exception: {e}")
 
     # for gps messages only - they have imu_time_ms and gps_time_ms instead of time field
     def add_delta_t_gps(self, message):
@@ -268,7 +271,7 @@ class Collector:
                 message.delta_t = message.imu_time_ms - self.last_gps_message_time
             self.last_gps_message_time = message.imu_time_ms
         except Exception as e:
-            print("could not compute time for message: "+str(message))
+            print(f"could not compute time for message: {message}\ndue to the following exception: {e}")
 
     # do a transformation on one message
     # message - the message to be transformed
