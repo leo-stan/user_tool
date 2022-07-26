@@ -177,6 +177,12 @@ class Collector:
             return self.gps_messages[-1]
         return None
 
+    def clear_message_queue(self):
+        self.messages = []
+
+    def clear_gps_message_queue(self):
+        self.gps_messages = []
+
     def stop_reading(self):
         self.isRun = False
         self.statistics.stop_timing()
