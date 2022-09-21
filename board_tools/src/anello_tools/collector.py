@@ -45,6 +45,7 @@ class Collector:
         self.thread = None
         self.messages = []
         self.gps_messages = []
+        self.gga_messages = []
         self.invalid_messages = []
 
         self.log_messages = log_messages
@@ -143,6 +144,8 @@ class Collector:
             if message.msgtype == b'GPS':
                 self.add_delta_t_gps(message)
                 self.gps_messages.append(message)
+            elif message.msgtype == b'GGA':
+                self.gga_messages.append(message)
             elif message.msgtype == b'CAL':
                 self.add_delta_t_cal(message)
                 self.transform_message_data(message)
@@ -180,11 +183,19 @@ class Collector:
             return self.gps_messages[-1]
         return None
 
+    def last_gga_message(self):
+        if len(self.gga_messages) > 0:
+            return self.gga_messages[-1]
+        return None
+
     def clear_message_queue(self):
         self.messages = []
 
     def clear_gps_message_queue(self):
         self.gps_messages = []
+
+    def clear_gga_message_queue(self):
+        self.gga_messages = []
 
     def stop_reading(self):
         self.isRun = False

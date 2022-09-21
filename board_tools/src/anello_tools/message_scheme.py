@@ -46,6 +46,7 @@ class Message:
     def __init__(self, var_dict={}):
         for name in var_dict:
             setattr(self, name, var_dict[name])
+        self.payload = b''
 
     def __str__(self):
         return "Message: " + str(self.__dict__)

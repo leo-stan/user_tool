@@ -142,6 +142,23 @@ FORMAT_GPS = [
     ("sync_gps_ns", int),
 ]
 
+FORMAT_GGA = [
+    ("utc_time_s", float),
+    ("lat_deg", float),
+    ("lat_dir", str),
+    ("lon_deg", float),
+    ("lon_dir", str),
+    ("quality", int),
+    ("nb_sats", int),
+    ("hdop", float),
+    ("alt_ellipsoid", float),
+    ("alt_unit", str),
+    ("undulation", float),
+    ("u-unit", str),
+    ("age", float),
+]
+
+
 FORMAT_ODO = [
     ("speed", float)
 ]

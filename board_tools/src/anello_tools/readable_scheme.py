@@ -25,22 +25,23 @@ class ReadableScheme(Scheme):
         if type(connection) is UDPConnection:
             data = connection.readall() #TODO does it need a read until end char function?
         else:
-            before = connection.read_until(READABLE_START)
+            # before = connection.read_until(READABLE_START)
             #TODO can handle partial start on whatever came before start code
             data = connection.read_until(READABLE_END)
+            # print(f"before: {before}")
+            # print(f"data: {data}")
         if not data:
             return None
-        #print("receiving: "+data.decode())
-        if data[:len(READABLE_START)] == READABLE_START: #chop off start code if present
-            data = data[len(READABLE_START):]
-        if data[-len(READABLE_END):] == READABLE_END: #chop off end code if present
-            data = data[:-len(READABLE_END)]
-        else:
-            pass #TODO if no end code, could handle partial read or give an error
-        if data:
-            message = Message()
-            self.set_fields_general(message, data)
-            return message
+
+        # chop off start code
+        data = data[len(READABLE_START):]
+        #chop off end code
+        data = data[:-len(READABLE_END)]
+        message = Message()
+
+        # print(f"{data = }")
+        self.set_fields_general(message, data)
+        return message
 
     #write a single message to the connection
     def write_one_message(self, message, connection):
@@ -56,8 +57,11 @@ class ReadableScheme(Scheme):
             message.checksum = ascii_to_int(data[sep_index+len(READABLE_CHECKSUM_SEPARATOR):]) #int(data[sep_index+len(READABLE_PAYLOAD_SEPARATOR):], 16) #it has bytes which read as the hex value
 
             #could split these from data or from message.checksum_input
-            message.talker = data[0: READABLE_TALKER_LENGTH]
+            message.talker = data[:READABLE_TALKER_LENGTH]
             message.msgtype = data[READABLE_TALKER_LENGTH: READABLE_TALKER_LENGTH + READABLE_TYPE_LENGTH]
+            # if message.msgtype == b'GGA':
+            #     print(f"{message.msgtype = }")
+
             message.payload = data[READABLE_TALKER_LENGTH + READABLE_TYPE_LENGTH + len(READABLE_PAYLOAD_SEPARATOR): sep_index]
             if self.check_valid(message):
                 self.decode_payload_for_type(message, message.msgtype, message.payload)
@@ -74,6 +78,8 @@ class ReadableScheme(Scheme):
         #then, message can be formed in Session and still work with ByteScheme, assuming message types and fields are consistent.
         data = OUR_TALKER + msgtype
         payload = self.build_payload_for_type(message, msgtype)
+        # print(f"{msgtype = }")
+
         if payload:
             data += READABLE_PAYLOAD_SEPARATOR + payload
         checksum = int_to_ascii(self.compute_checksum(data))
@@ -112,7 +118,8 @@ class ReadableScheme(Scheme):
             b'ECH': self.set_payload_fields_ECH,
             b'ODO': self.set_payload_fields_ODO,
             b'INS': self.set_payload_fields_INS,
-            b'VEH': self.set_payload_fields_with_names
+            b'VEH': self.set_payload_fields_with_names,
+            b'GGA': self.set_payload_fields_GGA
         }
         decoderFunc = decoders.get(msgtype)
         if decoderFunc:
@@ -159,7 +166,14 @@ class ReadableScheme(Scheme):
         elif num_commas == len(FORMAT_INS_EXTRA_COMMA) - 1:
             self.set_fields_from_list(message, FORMAT_INS_EXTRA_COMMA, payload)
 
+
+    def set_payload_fields_GGA(self, message, payload):
+        # print(f"GPGGA msg received! {payload = }")
+        self.set_fields_from_list(message, FORMAT_GGA, payload)
+
+
     def set_payload_fields_GPS(self, message, payload):
+        # print("GPS msg received!")
         self.set_fields_from_list(message, FORMAT_GPS, payload)
 
     def set_payload_fields_ERR(self, message, payload):
